@@ -5,4 +5,4 @@ edition = "2021"
 description = "Express grammar in Backus-Naur Form"
 
 [dependencies]
-pb-bnf-core = { path = "../core/" }
+pb-bnf-core = { path = "./core/" }
