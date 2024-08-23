@@ -1,7 +1,8 @@
 use std::ops::Deref;
 
 use crate::{
-    literal, symbol,
+    literal,
+    symbol::{self, SymbolRef},
     term::{self, TermKind},
 };
 
@@ -33,6 +34,12 @@ pub trait ITerm: Clone {
 
     fn borrow(&self) -> term::TermRef<'_>;
     fn to_owned(&self) -> term::Term;
+}
+
+pub trait IterSymbols<'a> {
+    type Iter: Iterator<Item = SymbolRef<'a>>;
+
+    fn iter_symbols(&self) -> Self::Iter;
 }
 
 pub trait ISymbol: Deref<Target = str> + Clone {
