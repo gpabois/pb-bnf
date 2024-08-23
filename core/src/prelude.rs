@@ -36,10 +36,10 @@ pub trait ITerm: Clone {
 }
 
 pub trait IterSymbols<'a> {
-    type Symbol: ISymbol;
-    type Iter: Iterator<Item = Self::Symbol>;
+    type Symbol: ISymbol + 'a;
+    type Iter: Iterator<Item = &'a Self::Symbol>;
 
-    fn iter_symbols(&self) -> Self::Iter;
+    fn iter_symbols(&'a self) -> Self::Iter;
 }
 
 pub trait ISymbol: Deref<Target = str> + Clone {
