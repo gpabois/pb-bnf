@@ -38,6 +38,12 @@ impl syn::parse::Parse for Literal {
     }
 }
 
+impl From<Symbol> for Literal {
+    fn from(value: Symbol) -> Self {
+        Self(value)
+    }
+}
+
 impl From<&str> for Literal {
     fn from(value: &str) -> Self {
         Self(Symbol::from(value))
