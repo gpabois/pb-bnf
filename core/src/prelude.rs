@@ -42,6 +42,12 @@ pub trait IterSymbols<'a> {
     fn iter_symbols(&'a self) -> Self::Iter;
 }
 
+pub trait IntoSymbol {
+    type Symbol: ISymbol;
+
+    fn into_symbol(self) -> Self::Symbol;
+}
+
 pub trait ISymbol: Deref<Target = str> + Clone {
     fn borrow(&self) -> symbol::SymbolRef<'_>;
     fn to_owned(&self) -> symbol::Symbol;

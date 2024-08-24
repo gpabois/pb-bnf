@@ -1,6 +1,6 @@
 use crate::{
     literal::{Literal, LiteralRef},
-    prelude::{self, ILiteral, ISymbol},
+    prelude::{self, ILiteral, ISymbol, IntoSymbol},
     symbol::{Symbol, SymbolRef},
 };
 
@@ -13,6 +13,17 @@ pub enum TermKind {
 pub enum Term {
     Symbol(Symbol),
     Literal(Literal),
+}
+
+impl IntoSymbol for Term {
+    type Symbol = Symbol;
+
+    fn into_symbol(self) -> Symbol {
+        match self {
+            Term::Symbol(sym) => sym,
+            Term::Literal(lit) => lit.into_symbol(),
+        }
+    }
 }
 
 impl Term {

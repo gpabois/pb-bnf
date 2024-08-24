@@ -3,12 +3,20 @@ use std::ops::Deref;
 use syn::{LitChar, LitStr};
 
 use crate::{
-    prelude::{self, ISymbol},
+    prelude::{self, ISymbol, IntoSymbol},
     symbol::{Symbol, SymbolRef},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Literal(Symbol);
+
+impl IntoSymbol for Literal {
+    type Symbol = Symbol;
+
+    fn into_symbol(self) -> Symbol {
+        self.0
+    }
+}
 
 impl std::fmt::Display for Literal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
