@@ -177,7 +177,7 @@ impl Parse for SymbolFragment {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Hash, Clone, PartialEq, Eq)]
 pub struct Symbol(String);
 
 impl Symbol {
