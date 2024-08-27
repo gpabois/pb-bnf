@@ -1,36 +1,30 @@
 use std::ops::Deref;
 
 use syn::{LitChar, LitStr};
-
-use crate::{
-    prelude::{self, ISymbol, IntoSymbol},
-    symbol::{Symbol, SymbolRef},
-};
+use yalp_shared::{prelude::IntoSymbol, symbol::Symbol};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Literal(Symbol);
+pub struct BnfLiteral<'syntax>(Symbol<'syntax>);
 
-impl IntoSymbol for Literal {
-    type Symbol = Symbol;
-
-    fn into_symbol(self) -> Symbol {
+impl<'syntax> IntoSymbol<'syntax> for BnfLiteral<'syntax> {
+    fn into_symbol(self) -> Symbol<'syntax> {
         self.0
     }
 }
 
-impl std::fmt::Display for Literal {
+impl std::fmt::Display for BnfLiteral<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "\"{}\"", self.0.deref())
     }
 }
 
-impl Literal {
+impl BnfLiteral<'_> {
     pub fn is_parsable(input: &syn::parse::ParseStream) -> bool {
         input.peek(LitChar) || input.peek(LitStr)
     }
 }
 
-impl syn::parse::Parse for Literal {
+impl syn::parse::Parse for BnfLiteral<'_> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         if input.peek(LitChar) {
             input
@@ -46,25 +40,25 @@ impl syn::parse::Parse for Literal {
     }
 }
 
-impl From<Symbol> for Literal {
-    fn from(value: Symbol) -> Self {
+impl<'syntax> From<Symbol<'syntax>> for BnfLiteral<'syntax> {
+    fn from(value: Symbol<'syntax>) -> Self {
         Self(value)
     }
 }
 
-impl From<&str> for Literal {
-    fn from(value: &str) -> Self {
+impl<'syntax> From<&'syntax str> for BnfLiteral<'syntax> {
+    fn from(value: &'syntax str) -> Self {
         Self(Symbol::from(value))
     }
 }
 
-impl From<String> for Literal {
+impl From<String> for BnfLiteral<'_> {
     fn from(value: String) -> Self {
         Self(Symbol::from(value))
     }
 }
 
-impl Deref for Literal {
+impl<'syntax> Deref for BnfLiteral<'syntax> {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
@@ -72,67 +66,8 @@ impl Deref for Literal {
     }
 }
 
-impl AsRef<Symbol> for Literal {
-    fn as_ref(&self) -> &Symbol {
+impl<'syntax> AsRef<Symbol<'syntax>> for BnfLiteral<'syntax> {
+    fn as_ref(&self) -> &Symbol<'syntax> {
         &self.0
-    }
-}
-
-impl prelude::ILiteral for Literal {
-    type Symbol = Symbol;
-
-    fn borrow(&self) -> self::LiteralRef<'_> {
-        LiteralRef(ISymbol::borrow(&self.0))
-    }
-
-    fn to_owned(&self) -> self::Literal {
-        self.clone()
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct LiteralRef<'a>(SymbolRef<'a>);
-
-impl<'a> LiteralRef<'a> {
-    pub const fn new(value: &'a str) -> Self {
-        Self(SymbolRef::new(value))
-    }
-}
-
-impl<'a> From<&'a str> for LiteralRef<'a> {
-    fn from(value: &'a str) -> Self {
-        Self(SymbolRef::from(value))
-    }
-}
-
-impl Deref for LiteralRef<'_> {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.0.deref()
-    }
-}
-
-impl<'a> AsRef<SymbolRef<'a>> for LiteralRef<'a> {
-    fn as_ref(&self) -> &SymbolRef<'a> {
-        &self.0
-    }
-}
-
-impl std::fmt::Display for LiteralRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "\"{}\"", self.0.deref())
-    }
-}
-
-impl<'a> prelude::ILiteral for LiteralRef<'a> {
-    type Symbol = SymbolRef<'a>;
-
-    fn borrow(&self) -> self::LiteralRef<'_> {
-        *self
-    }
-
-    fn to_owned(&self) -> self::Literal {
-        Literal(ISymbol::to_owned(&self.0))
     }
 }

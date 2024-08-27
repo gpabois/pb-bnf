@@ -8,3 +8,4 @@ itertools = "0.13.0"
 proc-macro2 = "1.0.86"
 quote = "1.0.36"
 syn = "2.0.75"
+yalp-shared = { git = "https://github.com/gpabois/yalp" }

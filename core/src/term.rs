@@ -1,137 +1,60 @@
-use crate::{
-    literal::{Literal, LiteralRef},
-    prelude::{self, ILiteral, ISymbol, IntoSymbol},
-    symbol::{Symbol, SymbolRef},
-};
+use yalp_shared::{prelude::IntoSymbol, symbol::Symbol};
 
-pub enum TermKind {
+use crate::{literal::BnfLiteral, symbol::BnfSymbol};
+
+pub enum BnfTermKind {
     Symbol,
     Literal,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Term {
-    Symbol(Symbol),
-    Literal(Literal),
+pub enum BnfTerm<'syntax> {
+    Symbol(BnfSymbol<'syntax>),
+    Literal(BnfLiteral<'syntax>),
 }
 
-impl IntoSymbol for Term {
-    type Symbol = Symbol;
-
-    fn into_symbol(self) -> Symbol {
+impl<'syntax> IntoSymbol<'syntax> for BnfTerm<'syntax> {
+    fn into_symbol(self) -> Symbol<'syntax> {
         match self {
-            Term::Symbol(sym) => sym,
-            Term::Literal(lit) => lit.into_symbol(),
+            BnfTerm::Symbol(sym) => sym.into_symbol(),
+            BnfTerm::Literal(lit) => lit.into_symbol(),
         }
     }
 }
 
-impl Term {
+impl BnfTerm<'_> {
     pub fn is_parsable(input: &syn::parse::ParseStream) -> bool {
-        Symbol::is_parsable(input) || Literal::is_parsable(input)
+        Symbol::is_parsable(input) || BnfLiteral::is_parsable(input)
     }
 }
 
-impl syn::parse::Parse for Term {
+impl syn::parse::Parse for BnfTerm<'_> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        if Symbol::is_parsable(&input) {
-            Symbol::parse(input).map(Self::Symbol)
+        if BnfSymbol::is_parsable(&input) {
+            BnfSymbol::parse(input).map(Self::Symbol)
         } else {
-            Literal::parse(input).map(Self::Literal)
+            BnfLiteral::parse(input).map(Self::Literal)
         }
     }
 }
 
-impl std::fmt::Display for Term {
+impl std::fmt::Display for BnfTerm<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Term::Symbol(sym) => sym.fmt(f),
-            Term::Literal(lit) => lit.fmt(f),
+            BnfTerm::Symbol(sym) => sym.fmt(f),
+            BnfTerm::Literal(lit) => lit.fmt(f),
         }
     }
 }
 
-impl From<Symbol> for Term {
-    fn from(value: Symbol) -> Self {
+impl<'syntax> From<BnfSymbol<'syntax>> for BnfTerm<'syntax> {
+    fn from(value: BnfSymbol<'syntax>) -> Self {
         Self::Symbol(value)
     }
 }
 
-impl From<Literal> for Term {
-    fn from(value: Literal) -> Self {
+impl<'syntax> From<BnfLiteral<'syntax>> for BnfTerm<'syntax> {
+    fn from(value: BnfLiteral<'syntax>) -> Self {
         Self::Literal(value)
-    }
-}
-
-impl prelude::ITerm for Term {
-    type Symbol = Symbol;
-    type Literal = Literal;
-
-    fn kind(&self) -> TermKind {
-        match self {
-            Term::Symbol(_) => TermKind::Symbol,
-            Term::Literal(_) => TermKind::Literal,
-        }
-    }
-
-    fn borrow(&self) -> self::TermRef<'_> {
-        match self {
-            Term::Symbol(sym) => ISymbol::borrow(sym).into(),
-            Term::Literal(lit) => ILiteral::borrow(lit).into(),
-        }
-    }
-
-    fn to_owned(&self) -> self::Term {
-        self.clone()
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TermRef<'a> {
-    Symbol(SymbolRef<'a>),
-    Literal(LiteralRef<'a>),
-}
-
-impl<'a> From<SymbolRef<'a>> for TermRef<'a> {
-    fn from(value: SymbolRef<'a>) -> Self {
-        Self::Symbol(value)
-    }
-}
-
-impl<'a> From<LiteralRef<'a>> for TermRef<'a> {
-    fn from(value: LiteralRef<'a>) -> Self {
-        Self::Literal(value)
-    }
-}
-
-impl<'a> prelude::ITerm for TermRef<'a> {
-    type Symbol = SymbolRef<'a>;
-    type Literal = LiteralRef<'a>;
-
-    fn kind(&self) -> TermKind {
-        match self {
-            TermRef::Symbol(_) => TermKind::Symbol,
-            TermRef::Literal(_) => TermKind::Literal,
-        }
-    }
-
-    fn borrow(&self) -> self::TermRef<'_> {
-        *self
-    }
-
-    fn to_owned(&self) -> self::Term {
-        match self {
-            TermRef::Symbol(sym) => ISymbol::to_owned(sym).into(),
-            TermRef::Literal(lit) => ILiteral::to_owned(lit).into(),
-        }
-    }
-}
-
-impl std::fmt::Display for TermRef<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            TermRef::Symbol(sym) => sym.fmt(f),
-            TermRef::Literal(lit) => lit.fmt(f),
-        }
     }
 }

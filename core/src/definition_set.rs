@@ -1,19 +1,19 @@
-use std::{
-    fmt::Display,
-    ops::{Deref, DerefMut},
-};
+use std::{borrow::Cow, fmt::Display};
 
 use itertools::Itertools;
 
-use crate::{
-    definition::{Definition, DefinitionRef},
-    prelude::IDefinitionSet,
-};
+use crate::definition::BnfDefinition;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct DefinitionSet(Vec<Definition>);
+pub struct BnfDefinitionSet<'syntax>(Cow<'syntax, [BnfDefinition<'syntax>]>);
 
-impl syn::parse::Parse for DefinitionSet {
+impl<'syntax> BnfDefinitionSet<'syntax> {
+    pub fn push(&mut self, definition: BnfDefinition<'syntax>) {
+        self.0.to_mut().push(definition)
+    }
+}
+
+impl syn::parse::Parse for BnfDefinitionSet<'_> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         use syn::Token;
 
@@ -36,67 +36,24 @@ impl syn::parse::Parse for DefinitionSet {
     }
 }
 
-impl Display for DefinitionSet {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.iter().map(ToString::to_string).join(" | ").fmt(f)
-    }
-}
-
-impl FromIterator<Definition> for DefinitionSet {
-    fn from_iter<T: IntoIterator<Item = Definition>>(iter: T) -> Self {
-        Self(iter.into_iter().collect())
-    }
-}
-
-impl AsRef<[Definition]> for DefinitionSet {
-    fn as_ref(&self) -> &[Definition] {
-        self.0.as_slice()
-    }
-}
-
-impl Deref for DefinitionSet {
-    type Target = Vec<Definition>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl DerefMut for DefinitionSet {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl IDefinitionSet for DefinitionSet {
-    type Definition = Definition;
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DefinitionSetRef<'a>(&'a [DefinitionRef<'a>]);
-
-impl<'a> AsRef<[DefinitionRef<'a>]> for DefinitionSetRef<'a> {
-    fn as_ref(&self) -> &[DefinitionRef<'a>] {
-        self.0
-    }
-}
-
-impl<'a> DefinitionSetRef<'a> {
-    pub const fn new(defs: &'a [DefinitionRef<'a>]) -> Self {
-        Self(defs)
-    }
-}
-
-impl<'a> IDefinitionSet for DefinitionSetRef<'a> {
-    type Definition = DefinitionRef<'a>;
-}
-
-impl Display for DefinitionSetRef<'_> {
+impl Display for BnfDefinitionSet<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.as_ref()
             .iter()
             .map(ToString::to_string)
             .join(" | ")
             .fmt(f)
+    }
+}
+
+impl<'syntax> FromIterator<BnfDefinition<'syntax>> for BnfDefinitionSet<'syntax> {
+    fn from_iter<T: IntoIterator<Item = BnfDefinition<'syntax>>>(iter: T) -> Self {
+        Self(iter.into_iter().collect())
+    }
+}
+
+impl<'syntax> AsRef<[BnfDefinition<'syntax>]> for BnfDefinitionSet<'syntax> {
+    fn as_ref(&self) -> &[BnfDefinition<'syntax>] {
+        self.0.as_ref()
     }
 }
