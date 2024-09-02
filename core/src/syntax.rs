@@ -1,32 +1,33 @@
-use std::{borrow::Cow, fmt::Display};
+use crate::definition_set::BnfDefinitionSet;
+use yalp_shared::{
+    prelude::*,
+    syntax::{RuleKernel, Syntax, SyntaxKernel},
+};
 
-use itertools::Itertools;
+pub type BnfSyntax<'syntax> = Syntax<'syntax, BnfDefinitionSet<'syntax>>;
 
-use crate::rule::Rule;
-
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
-pub struct BnfSyntax<'syntax>(Cow<'syntax, [Rule<'syntax>]>);
-
-impl Display for BnfSyntax<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.as_ref()
-            .iter()
-            .map(ToString::to_string)
-            .enumerate()
-            .map(|(rule_id, rule_str)| format!("{rule_id}. {rule_str}"))
-            .join("\n")
-            .fmt(f)
-    }
+#[derive(Default)]
+pub struct KernelizeBnfSyntax<'syntax> {
+    rules: Vec<RuleKernel<'syntax>>,
 }
 
-impl<'syntax> FromIterator<Rule<'syntax>> for BnfSyntax<'syntax> {
-    fn from_iter<T: IntoIterator<Item = Rule<'syntax>>>(iter: T) -> Self {
-        Self(iter.into_iter().collect())
-    }
-}
+impl<'syntax> TransformSyntax<'syntax, KernelizeBnfSyntax<'syntax>> for BnfSyntax<'syntax> {
+    type Transformed = SyntaxKernel<'syntax>;
 
-impl<'syntax> AsRef<[Rule<'syntax>]> for BnfSyntax<'syntax> {
-    fn as_ref(&self) -> &[Rule<'syntax>] {
-        &self.0
+    fn transform_syntax(self, ctx: &mut KernelizeBnfSyntax<'syntax>) -> Self::Transformed {
+        self.into_iter().for_each(|rule| {
+            let lhs = rule.lhs;
+            ctx.rules.extend(rule.rhs.into_iter().map(|def| {
+                RuleKernel {
+                    lhs: lhs.clone(),
+                    rhs: def
+                        .into_iter()
+                        .map(|term| term.into_symbol_identifier())
+                        .collect(),
+                }
+            }));
+        });
+
+        std::mem::take(&mut ctx.rules).into_iter().collect()
     }
 }

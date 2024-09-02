@@ -1,6 +1,6 @@
-use yalp_shared::{prelude::IntoSymbol, symbol::Symbol};
+use yalp_shared::{prelude::IntoSymbolIdentifier, symbol::SymbolId};
 
-use crate::{literal::BnfLiteral, symbol::BnfSymbol};
+use crate::{literal::BnfLiteral, symbol::BnfSymbolId};
 
 pub enum BnfTermKind {
     Symbol,
@@ -9,46 +9,37 @@ pub enum BnfTermKind {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BnfTerm<'syntax> {
-    Symbol(BnfSymbol<'syntax>),
+    Symbol(BnfSymbolId<'syntax>),
     Literal(BnfLiteral<'syntax>),
 }
 
-impl<'syntax> IntoSymbol<'syntax> for BnfTerm<'syntax> {
-    fn into_symbol(self) -> Symbol<'syntax> {
+impl<'syntax> IntoSymbolIdentifier<'syntax> for BnfTerm<'syntax> {
+    fn into_symbol_identifier(self) -> SymbolId<'syntax> {
         match self {
-            BnfTerm::Symbol(sym) => sym.into_symbol(),
-            BnfTerm::Literal(lit) => lit.into_symbol(),
+            BnfTerm::Symbol(sym) => sym.into_symbol_identifier(),
+            BnfTerm::Literal(lit) => lit.into_symbol_identifier(),
         }
     }
 }
 
 impl BnfTerm<'_> {
     pub fn is_parsable(input: &syn::parse::ParseStream) -> bool {
-        Symbol::is_parsable(input) || BnfLiteral::is_parsable(input)
+        BnfSymbolId::is_parsable(input) || BnfLiteral::is_parsable(input)
     }
 }
 
 impl syn::parse::Parse for BnfTerm<'_> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        if BnfSymbol::is_parsable(&input) {
-            BnfSymbol::parse(input).map(Self::Symbol)
+        if BnfSymbolId::is_parsable(&input) {
+            BnfSymbolId::parse(input).map(Self::Symbol)
         } else {
             BnfLiteral::parse(input).map(Self::Literal)
         }
     }
 }
 
-impl std::fmt::Display for BnfTerm<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            BnfTerm::Symbol(sym) => sym.fmt(f),
-            BnfTerm::Literal(lit) => lit.fmt(f),
-        }
-    }
-}
-
-impl<'syntax> From<BnfSymbol<'syntax>> for BnfTerm<'syntax> {
-    fn from(value: BnfSymbol<'syntax>) -> Self {
+impl<'syntax> From<BnfSymbolId<'syntax>> for BnfTerm<'syntax> {
+    fn from(value: BnfSymbolId<'syntax>) -> Self {
         Self::Symbol(value)
     }
 }

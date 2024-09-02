@@ -1,45 +1,37 @@
-use std::ops::Deref;
-
 use yalp_shared::{
-    prelude::IntoSymbol,
-    symbol::{Symbol, SymbolFragment},
+    prelude::IntoSymbolIdentifier,
+    symbol::{SymbolFragment, SymbolId},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BnfSymbol<'syntax>(Symbol<'syntax>);
+pub struct BnfSymbolId<'syntax>(SymbolId<'syntax>);
 
-impl<'syntax> IntoSymbol<'syntax> for BnfSymbol<'syntax> {
-    fn into_symbol(self) -> Symbol<'syntax> {
+impl<'syntax> IntoSymbolIdentifier<'syntax> for BnfSymbolId<'syntax> {
+    fn into_symbol_identifier(self) -> SymbolId<'syntax> {
         self.0
     }
 }
 
-impl From<String> for BnfSymbol<'_> {
+impl From<String> for BnfSymbolId<'_> {
     fn from(value: String) -> Self {
         Self(value.into())
     }
 }
 
-impl<'syntax> From<&'syntax str> for BnfSymbol<'syntax> {
+impl<'syntax> From<&'syntax str> for BnfSymbolId<'syntax> {
     fn from(value: &'syntax str) -> Self {
         Self(value.into())
     }
 }
 
-impl std::fmt::Display for BnfSymbol<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "<{}>", self.0.deref())
-    }
-}
-
-impl BnfSymbol<'_> {
+impl BnfSymbolId<'_> {
     pub fn is_parsable(input: &syn::parse::ParseStream) -> bool {
         use syn::Token;
         input.peek(Token![<])
     }
 }
 
-impl syn::parse::Parse for BnfSymbol<'_> {
+impl syn::parse::Parse for BnfSymbolId<'_> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         use syn::Token;
 

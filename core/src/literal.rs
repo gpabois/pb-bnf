@@ -1,13 +1,13 @@
 use std::ops::Deref;
 
 use syn::{LitChar, LitStr};
-use yalp_shared::{prelude::IntoSymbol, symbol::Symbol};
+use yalp_shared::{prelude::IntoSymbolIdentifier, symbol::SymbolId};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct BnfLiteral<'syntax>(Symbol<'syntax>);
+pub struct BnfLiteral<'syntax>(SymbolId<'syntax>);
 
-impl<'syntax> IntoSymbol<'syntax> for BnfLiteral<'syntax> {
-    fn into_symbol(self) -> Symbol<'syntax> {
+impl<'syntax> IntoSymbolIdentifier<'syntax> for BnfLiteral<'syntax> {
+    fn into_symbol_identifier(self) -> SymbolId<'syntax> {
         self.0
     }
 }
@@ -40,21 +40,21 @@ impl syn::parse::Parse for BnfLiteral<'_> {
     }
 }
 
-impl<'syntax> From<Symbol<'syntax>> for BnfLiteral<'syntax> {
-    fn from(value: Symbol<'syntax>) -> Self {
+impl<'syntax> From<SymbolId<'syntax>> for BnfLiteral<'syntax> {
+    fn from(value: SymbolId<'syntax>) -> Self {
         Self(value)
     }
 }
 
 impl<'syntax> From<&'syntax str> for BnfLiteral<'syntax> {
     fn from(value: &'syntax str) -> Self {
-        Self(Symbol::from(value))
+        Self(SymbolId::from(value))
     }
 }
 
 impl From<String> for BnfLiteral<'_> {
     fn from(value: String) -> Self {
-        Self(Symbol::from(value))
+        Self(SymbolId::from(value))
     }
 }
 
@@ -66,8 +66,8 @@ impl<'syntax> Deref for BnfLiteral<'syntax> {
     }
 }
 
-impl<'syntax> AsRef<Symbol<'syntax>> for BnfLiteral<'syntax> {
-    fn as_ref(&self) -> &Symbol<'syntax> {
+impl<'syntax> AsRef<SymbolId<'syntax>> for BnfLiteral<'syntax> {
+    fn as_ref(&self) -> &SymbolId<'syntax> {
         &self.0
     }
 }
